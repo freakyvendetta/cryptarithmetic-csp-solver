@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cryptarithmetic CSP Solver & Interactive Sandbox</title>
+  <meta name="description" content="An interactive constraint satisfaction problem (CSP) solver for cryptarithmetic puzzles, with visual carry tracking, step-by-step sandbox mode, and performance statistics." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="app-container">
+
+  <!-- Header -->
+  <header>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+      <div>
+        <div class="eyebrow">Constraint Satisfaction Problem</div>
+        <h1>Cryptarithmetic <span>Solver & Sandbox</span></h1>
+        <p class="subtitle">Assign a unique digit (0-9) to each letter with no leading zeros. Solved via column-wise CSP constraint propagation with carry tracking and real-time interactive sandbox mode.</p>
+      </div>
+      <a href="https://github.com/freakyvendetta/cryptarithmetic-csp-solver" target="_blank" rel="noopener" style="
+        display: inline-flex; align-items: center; gap: 8px;
+        background: var(--surface); border: 1px solid var(--border);
+        padding: 8px 16px; border-radius: 10px; color: var(--text);
+        text-decoration: none; font-size: 13px; font-weight: 600;
+        transition: all 0.2s;
+      " onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--text)'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub Repository
+      </a>
+    </div>
+  </header>
+
+  <div class="main-grid">
+    <!-- Left panel (Inputs & Controls) -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      
+            <!-- Preset Selection -->
+      <div class="card">
+        <div class="tab-header">
+          Benchmark Presets <span>Classic CSP Puzzles</span>
+        </div>
+        <div class="preset-grid">
+          <button class="preset-btn" onclick="loadPreset('SEND + MORE = MONEY')">
+            SEND+MORE=MONEY
+            <span>Classic Benchmark</span>
+          </button>
+          <button class="preset-btn" onclick="loadPreset('TEN + TEN + FORTY = SIXTY')">
+            TEN+TEN+FORTY=SIXTY
+            <span>3 Addends & Carry 2</span>
+          </button>
+          <button class="preset-btn" onclick="loadPreset('ONE + ONE = TWO')">
+            ONE+ONE=TWO
+            <span>Unit Parity Test</span>
+          </button>
+          <button class="preset-btn" onclick="loadPreset('BASE + BALL = GAMES')">
+            BASE+BALL=GAMES
+            <span>Repeated Letters</span>
+          </button>
+          <button class="preset-btn" onclick="loadPreset('CROSS + ROADS = DANGER')">
+            CROSS+ROADS=DANGER
+            <span>10 Unique Letters (Max)</span>
+          </button>
+          <button class="preset-btn" onclick="loadPreset('APPLE + GRAPE = CHERRY')">
+            APPLE+GRAPE=CHERRY
+            <span>Double-Letter Bound</span>
+          </button>
+          <button class="preset-btn" onclick="loadPreset('LOGIC + LOGIC = PROLOG')">
+            LOGIC+LOGIC=PROLOG
+            <span>Symmetric Addends</span>
+          </button>
+          <button class="preset-btn" onclick="loadPreset('WRONG + WRONG = RIGHT')">
+            WRONG+WRONG=RIGHT
+            <span>Parity Invariance</span>
+          </button>
+          <button class="preset-btn" onclick="loadPreset('KYOTO + OSAKA = TOKYO')">
+            KYOTO+OSAKA=TOKYO
+            <span>Cyclic Anagrams</span>
+          </button>
+          <button class="preset-btn" onclick="loadPreset('LETS + WAVE = LATER')">
+            LETS+WAVE=LATER
+            <span>Carry Propagation</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Input Controls -->
+      <div class="card">
+        <div class="mode-toggle">
+          <button id="mode-solve" class="mode-btn active" onclick="switchMode('solve')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            Auto Solver
+          </button>
+          <button id="mode-sandbox" class="mode-btn" onclick="switchMode('sandbox')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+            Sandbox Mode
+          </button>
+        </div>
+
+        <div class="field">
+          <label for="equation-input">Equation</label>
+          <div class="input-wrapper">
+            <input type="text" id="equation-input" value="SEND + MORE = MONEY" placeholder="e.g. SEND + MORE = MONEY" autocomplete="off" spellcheck="false" />
+          </div>
+          <div class="chips-container">
+            <div class="chips-label">Unique letters in equation:</div>
+            <div class="chips" id="letter-chips"></div>
+          </div>
+        </div>
+
+        <div class="field" id="known-field">
+          <label for="known-input">Known Assignments <span class="optional">(optional)</span></label>
+          <input type="text" id="known-input" placeholder="e.g. S=9, M=1" autocomplete="off" spellcheck="false" />
+        </div>
+
+        <button id="solve-btn" class="btn-primary" onclick="handleSolve()">
+          Solve Equation
+        </button>
+
+        <div class="error-box" id="error-box"></div>
+      </div>
+
+    </div>
+
+    <!-- Right panel (Results or Sandbox Board) -->
+    <div id="right-panel">
+      <!-- Auto Solver Results Card -->
+      <div class="card" id="results-card">
+        <div class="card-title">
+          Solver Output
+        </div>
+        <div id="results-container">
+          <div class="no-solution">Enter an equation and click Solve to run the CSP engine.</div>
+        </div>
+      </div>
+
+      <!-- Sandbox Panel Card (Hidden by default) -->
+      <div class="card" id="sandbox-card" style="display: none;">
+        <div class="card-title">
+          Interactive Sandbox
+          <button class="show-all-btn" style="width: auto; margin-top: 0; padding: 6px 12px; font-size: 11px;" onclick="resetSandbox()">Reset</button>
+        </div>
+        <div class="sandbox-container">
+          <div style="font-size: 13px; color: var(--text-muted);">
+            Manually assign digits to letters and observe how the carries propagate and column constraints are verified.
+          </div>
+          
+          <!-- Sandbox Math Display -->
+          <div id="sandbox-math-display"></div>
+
+          <!-- Live Verification Status -->
+          <div id="sandbox-verification"></div>
+
+          <!-- Manual Assign Grid -->
+          <div>
+            <label>Letter Assignments</label>
+            <div class="manual-assignment-grid" id="sandbox-assignments"></div>
+          </div>
+
+          <!-- Unused Digits Pool -->
+          <div>
+            <label>Available Digits</label>
+            <div class="digit-pool" id="sandbox-digit-pool"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+  <script src="js/csp-solver.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
